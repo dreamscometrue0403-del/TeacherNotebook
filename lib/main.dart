@@ -1,21 +1,10 @@
-import 'dart:convert';
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/gestures.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+void main() {
   runApp(const TeacherNotebookApp());
 }
-
-// ============================================================
-// APP
-// ============================================================
 
 class TeacherNotebookApp extends StatelessWidget {
   const TeacherNotebookApp({super.key});
@@ -27,199 +16,67 @@ class TeacherNotebookApp extends StatelessWidget {
       title: 'Teacher Notebook',
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF9F7FF),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF555D9C),
+          seedColor: const Color(0xFF5963A5),
         ),
-        fontFamily: 'sans',
+        scaffoldBackgroundColor: const Color(0xFFF9F7FF),
       ),
-      home: const HomeScreen(),
+      home: const HomePage(),
     );
   }
 }
 
-// ============================================================
-// DATA MODELS
-// ============================================================
-
-enum ToolType {
-  pen,
-  highlighter,
-  eraser,
-}
-
-enum StrokeShape {
-  free,
-  line,
-  circle,
-}
-
-class DrawingPoint {
-  final double x;
-  final double y;
-
-  DrawingPoint(this.x, this.y);
-
-  Map<String, dynamic> toJson() {
-    return {
-      'x': x,
-      'y': y,
-    };
-  }
-
-  factory DrawingPoint.fromJson(Map<String, dynamic> json) {
-    return DrawingPoint(
-      (json['x'] as num).toDouble(),
-      (json['y'] as num).toDouble(),
-    );
-  }
-
-  Offset get offset => Offset(x, y);
-}
-
-class DrawingStroke {
-  final List<DrawingPoint> points;
-  final int color;
-  final double width;
-  final ToolType tool;
-  final StrokeShape shape;
-
-  DrawingStroke({
-    required this.points,
-    required this.color,
-    required this.width,
-    required this.tool,
-    this.shape = StrokeShape.free,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'points': points.map((p) => p.toJson()).toList(),
-      'color': color,
-      'width': width,
-      'tool': tool.name,
-      'shape': shape.name,
-    };
-  }
-
-  factory DrawingStroke.fromJson(Map<String, dynamic> json) {
-    final points = (json['points'] as List)
-        .map(
-          (p) => DrawingPoint.fromJson(
-            Map<String, dynamic>.from(p),
-          ),
-        )
-        .toList();
-
-    return DrawingStroke(
-      points: points,
-      color: json['color'] as int,
-      width: (json['width'] as num).toDouble(),
-      tool: ToolType.values.firstWhere(
-        (e) => e.name == json['tool'],
-        orElse: () => ToolType.pen,
-      ),
-      shape: StrokeShape.values.firstWhere(
-        (e) => e.name == json['shape'],
-        orElse: () => StrokeShape.free,
-      ),
-    );
-  }
-}
-
-class NotebookPage {
-  final List<DrawingStroke> strokes;
-
-  NotebookPage({
-    List<DrawingStroke>? strokes,
-  }) : strokes = strokes ?? [];
-
-  Map<String, dynamic> toJson() {
-    return {
-      'strokes': strokes.map((s) => s.toJson()).toList(),
-    };
-  }
-
-  factory NotebookPage.fromJson(Map<String, dynamic> json) {
-    return NotebookPage(
-      strokes: (json['strokes'] as List? ?? [])
-          .map(
-            (s) => DrawingStroke.fromJson(
-              Map<String, dynamic>.from(s),
-            ),
-          )
-          .toList(),
-    );
-  }
-}
-
-// ============================================================
+// ------------------------------------------------------------
 // HOME
-// ============================================================
+// ------------------------------------------------------------
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F7FF),
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 28),
-
+            const SizedBox(height: 45),
             const Text(
               'Teacher Notebook',
               style: TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF20202A),
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
               ),
             ),
-
-            const SizedBox(height: 48),
-
-            Expanded(
-              child: Row(
-                children: [
-                  const SizedBox(width: 45),
-
-                  Expanded(
-                    child: _HomeCard(
-                      icon: Icons.calculate_rounded,
-                      title: 'Calculator',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const CalculatorScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(width: 42),
-
-                  Expanded(
-                    child: _HomeCard(
-                      icon: Icons.menu_book_rounded,
-                      title: 'Books',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const BooksScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(width: 45),
-                ],
-              ),
+            const SizedBox(height: 70),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _HomeCard(
+                  icon: Icons.calculate_rounded,
+                  title: 'Calculator',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CalculatorPage(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 42),
+                _HomeCard(
+                  icon: Icons.menu_book_rounded,
+                  title: 'Books',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const BooksPage(),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -241,82 +98,72 @@ class _HomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(25),
-        onTap: onTap,
-        child: Container(
-          height: 275,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF4F1F9),
-            borderRadius: BorderRadius.circular(25),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x33000000),
-                blurRadius: 10,
-                offset: Offset(0, 7),
+    return InkWell(
+      borderRadius: BorderRadius.circular(24),
+      onTap: onTap,
+      child: Container(
+        width: 280,
+        height: 280,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF4F1F9),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(
+              blurRadius: 10,
+              offset: Offset(0, 7),
+              color: Color(0x30000000),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 82,
+              color: const Color(0xFF5963A5),
+            ),
+            const SizedBox(height: 35),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w600,
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 90,
-                color: const Color(0xFF565E9E),
-              ),
-              const SizedBox(height: 35),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// ============================================================
+// ------------------------------------------------------------
 // BOOKS
-// ============================================================
+// ------------------------------------------------------------
 
-class BooksScreen extends StatefulWidget {
-  const BooksScreen({super.key});
+class Book {
+  String name;
 
-  @override
-  State<BooksScreen> createState() => _BooksScreenState();
+  Book(this.name);
 }
 
-class _BooksScreenState extends State<BooksScreen> {
-  List<String> books = [];
+class BooksPage extends StatefulWidget {
+  const BooksPage({super.key});
 
   @override
-  void initState() {
-    super.initState();
-    loadBooks();
-  }
+  State<BooksPage> createState() => _BooksPageState();
+}
 
-  Future<void> loadBooks() async {
-    final prefs = await SharedPreferences.getInstance();
+class _BooksPageState extends State<BooksPage> {
+  final List<Book> books = [];
 
-    setState(() {
-      books = prefs.getStringList('books') ?? [];
-    });
-  }
-
-  Future<void> createBook() async {
+  void createBook() {
     final controller = TextEditingController();
 
-    final name = await showDialog<String>(
+    showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Create Book'),
           content: TextField(
@@ -324,21 +171,30 @@ class _BooksScreenState extends State<BooksScreen> {
             autofocus: true,
             decoration: const InputDecoration(
               labelText: 'Book name',
-              hintText: 'Example: Accounts',
+              hintText: 'Example: Maths Notes',
+              border: OutlineInputBorder(),
             ),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
               child: const Text('Cancel'),
             ),
             FilledButton(
               onPressed: () {
-                final value = controller.text.trim();
+                final name = controller.text.trim();
 
-                if (value.isNotEmpty) {
-                  Navigator.pop(context, value);
+                if (name.isEmpty) {
+                  return;
                 }
+
+                setState(() {
+                  books.add(Book(name));
+                });
+
+                Navigator.pop(dialogContext);
               },
               child: const Text('Create'),
             ),
@@ -346,587 +202,309 @@ class _BooksScreenState extends State<BooksScreen> {
         );
       },
     );
-
-    if (name == null || name.isEmpty) return;
-
-    final prefs = await SharedPreferences.getInstance();
-
-    books.add(name);
-
-    await prefs.setStringList('books', books);
-
-    await saveBookPages(name, [
-      NotebookPage(),
-    ]);
-
-    setState(() {});
-  }
-
-  Future<void> deleteBook(String name) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    books.remove(name);
-
-    await prefs.setStringList('books', books);
-    await prefs.remove('book_$name');
-
-    setState(() {});
-  }
-
-  Future<void> saveBookPages(
-    String name,
-    List<NotebookPage> pages,
-  ) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final encoded = jsonEncode(
-      pages.map((p) => p.toJson()).toList(),
-    );
-
-    await prefs.setString('book_$name', encoded);
-  }
-
-  Future<List<NotebookPage>> loadBookPages(String name) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final data = prefs.getString('book_$name');
-
-    if (data == null) {
-      return [NotebookPage()];
-    }
-
-    final list = jsonDecode(data) as List;
-
-    return list
-        .map(
-          (e) => NotebookPage.fromJson(
-            Map<String, dynamic>.from(e),
-          ),
-        )
-        .toList();
-  }
-
-  void openBook(String name) async {
-    final pages = await loadBookPages(name);
-
-    if (!mounted) return;
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => NotebookScreen(
-          bookName: name,
-          initialPages: pages,
-          onSave: (updatedPages) async {
-            await saveBookPages(name, updatedPages);
-          },
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F7FF),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            size: 34,
-          ),
+          icon: const Icon(Icons.arrow_back, size: 32),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Books',
-          style: TextStyle(
-            fontSize: 30,
-            fontWeight: FontWeight.w400,
-          ),
+          style: TextStyle(fontSize: 28),
         ),
       ),
       body: books.isEmpty
-          ? Center(
-              child: _CreateBookButton(
-                onTap: createBook,
+          ? const Center(
+              child: Text(
+                'No books yet',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.grey,
+                ),
               ),
             )
-          : Stack(
-              children: [
-                ListView.builder(
-                  padding: const EdgeInsets.all(25),
-                  itemCount: books.length,
-                  itemBuilder: (context, index) {
-                    final book = books[index];
+          : ListView.builder(
+              padding: const EdgeInsets.all(20),
+              itemCount: books.length,
+              itemBuilder: (context, index) {
+                final book = books[index];
 
-                    return Card(
-                      elevation: 2,
-                      margin: const EdgeInsets.only(
-                        bottom: 15,
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        leading: const Icon(
-                          Icons.menu_book_rounded,
-                          color: Color(0xFF555D9C),
-                          size: 40,
-                        ),
-                        title: Text(
-                          book,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        onTap: () => openBook(book),
-                        trailing: IconButton(
-                          icon: const Icon(
-                            Icons.delete_outline,
-                          ),
-                          onPressed: () => deleteBook(book),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                Positioned(
-                  bottom: 30,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: _CreateBookButton(
-                      onTap: createBook,
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 15),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: const Icon(
+                      Icons.menu_book_rounded,
+                      size: 42,
+                      color: Color(0xFF5963A5),
                     ),
+                    title: Text(
+                      book.name,
+                      style: const TextStyle(
+                        fontSize: 21,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NotebookPage(
+                            bookName: book.name,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ),
-              ],
+                );
+              },
             ),
-    );
-  }
-}
-
-class _CreateBookButton extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _CreateBookButton({
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: onTap,
-      icon: const Icon(Icons.add),
-      label: const Text(
-        'Create Book',
-        style: TextStyle(
-          fontSize: 19,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF565E9E),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: createBook,
+        backgroundColor: const Color(0xFF5963A5),
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 30,
-          vertical: 18,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(40),
+        icon: const Icon(Icons.add),
+        label: const Text(
+          'Create Book',
+          style: TextStyle(fontSize: 17),
         ),
       ),
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.centerFloat,
     );
   }
 }
 
-// ============================================================
-// NOTEBOOK
-// ============================================================
+// ------------------------------------------------------------
+// NOTEBOOK / DRAWING
+// ------------------------------------------------------------
 
-class NotebookScreen extends StatefulWidget {
+enum ToolType {
+  pen,
+  highlighter,
+  eraser,
+}
+
+class DrawStroke {
+  final List<Offset> points;
+  final Color color;
+  final double width;
+  final ToolType tool;
+
+  DrawStroke({
+    required this.points,
+    required this.color,
+    required this.width,
+    required this.tool,
+  });
+}
+
+class NotebookPage extends StatefulWidget {
   final String bookName;
-  final List<NotebookPage> initialPages;
-  final Future<void> Function(List<NotebookPage>) onSave;
 
-  const NotebookScreen({
+  const NotebookPage({
     super.key,
     required this.bookName,
-    required this.initialPages,
-    required this.onSave,
   });
 
   @override
-  State<NotebookScreen> createState() => _NotebookScreenState();
+  State<NotebookPage> createState() => _NotebookPageState();
 }
 
-class _NotebookScreenState extends State<NotebookScreen> {
-  late List<NotebookPage> pages;
-
-  int currentPage = 0;
+class _NotebookPageState extends State<NotebookPage> {
+  final List<DrawStroke> strokes = [];
 
   ToolType selectedTool = ToolType.pen;
 
-  Color selectedColor = Colors.black;
+  Color penColor = Colors.black;
+  double penWidth = 4;
 
-  double strokeWidth = 4;
+  List<Offset> currentPoints = [];
 
-  DrawingStroke? currentStroke;
-
-  final List<List<DrawingStroke>> undoStack = [];
-  final List<List<DrawingStroke>> redoStack = [];
-
-  int activePointers = 0;
-
-  Offset? twoFingerStart;
-
-  bool twoFingerGesture = false;
-
-  DateTime? strokeStart;
+  bool isTwoFingerGesture = false;
 
   @override
-  void initState() {
-    super.initState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.bookName),
+        backgroundColor: Colors.white,
+        actions: [
+          IconButton(
+            tooltip: 'Undo',
+            icon: const Icon(Icons.undo),
+            onPressed: strokes.isEmpty
+                ? null
+                : () {
+                    setState(() {
+                      strokes.removeLast();
+                    });
+                  },
+          ),
+          IconButton(
+            tooltip: 'Clear',
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () {
+              setState(() {
+                strokes.clear();
+              });
+            },
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
 
-    pages = widget.initialPages.isEmpty
-        ? [NotebookPage()]
-        : widget.initialPages;
-  }
+            // Two fingers = don't draw.
+            onScaleStart: (details) {
+              if (details.pointerCount >= 2) {
+                isTwoFingerGesture = true;
+                currentPoints.clear();
+              } else {
+                isTwoFingerGesture = false;
+                currentPoints = [details.localFocalPoint];
+              }
+            },
 
-  NotebookPage get page => pages[currentPage];
+            onScaleUpdate: (details) {
+              if (isTwoFingerGesture) {
+                // Two finger movement can be used for page scrolling.
+                return;
+              }
 
-  Future<void> save() async {
-    await widget.onSave(pages);
-  }
+              if (details.pointerCount == 1) {
+                setState(() {
+                  currentPoints.add(details.localFocalPoint);
+                });
+              }
+            },
 
-  void saveUndoState() {
-    undoStack.add(
-      page.strokes
-          .map(
-            (stroke) => DrawingStroke(
-              points: List.from(stroke.points),
-              color: stroke.color,
-              width: stroke.width,
-              tool: stroke.tool,
-              shape: stroke.shape,
+            onScaleEnd: (details) {
+              if (isTwoFingerGesture) {
+                isTwoFingerGesture = false;
+                currentPoints.clear();
+                return;
+              }
+
+              if (currentPoints.length < 2) {
+                currentPoints.clear();
+                return;
+              }
+
+              final points = List<Offset>.from(currentPoints);
+
+              // Detect straight line if user holds/draws nearly straight.
+              final simplified = _makeStraightIfNeeded(points);
+
+              // Detect circle.
+              final circle = _makeCircleIfNeeded(points);
+
+              final finalPoints = circle ?? simplified;
+
+              setState(() {
+                strokes.add(
+                  DrawStroke(
+                    points: finalPoints,
+                    color: selectedTool == ToolType.eraser
+                        ? Colors.white
+                        : penColor,
+                    width: selectedTool == ToolType.highlighter
+                        ? 18
+                        : selectedTool == ToolType.eraser
+                            ? 28
+                            : penWidth,
+                    tool: selectedTool,
+                  ),
+                );
+
+                currentPoints.clear();
+              });
+            },
+
+            child: CustomPaint(
+              painter: NotebookPainter(
+                strokes: strokes,
+                currentPoints: currentPoints,
+                currentColor: selectedTool == ToolType.eraser
+                    ? Colors.white
+                    : penColor,
+                currentWidth: selectedTool == ToolType.highlighter
+                    ? 18
+                    : selectedTool == ToolType.eraser
+                        ? 28
+                        : penWidth,
+                currentTool: selectedTool,
+              ),
+              child: const SizedBox.expand(),
             ),
-          )
-          .toList(),
-    );
+          ),
 
-    if (undoStack.length > 50) {
-      undoStack.removeAt(0);
-    }
-
-    redoStack.clear();
-  }
-
-  void undo() {
-    if (undoStack.isEmpty) return;
-
-    redoStack.add(
-      page.strokes
-          .map(
-            (stroke) => DrawingStroke(
-              points: List.from(stroke.points),
-              color: stroke.color,
-              width: stroke.width,
-              tool: stroke.tool,
-              shape: stroke.shape,
+          // TOOLBAR
+          Positioned(
+            left: 12,
+            top: 15,
+            child: _ToolBar(
+              selectedTool: selectedTool,
+              onToolChanged: (tool) {
+                setState(() {
+                  selectedTool = tool;
+                });
+              },
             ),
-          )
-          .toList(),
-    );
-
-    setState(() {
-      page.strokes
-        ..clear()
-        ..addAll(undoStack.removeLast());
-    });
-
-    save();
-  }
-
-  void redo() {
-    if (redoStack.isEmpty) return;
-
-    undoStack.add(
-      page.strokes
-          .map(
-            (stroke) => DrawingStroke(
-              points: List.from(stroke.points),
-              color: stroke.color,
-              width: stroke.width,
-              tool: stroke.tool,
-              shape: stroke.shape,
-            ),
-          )
-          .toList(),
-    );
-
-    setState(() {
-      page.strokes
-        ..clear()
-        ..addAll(redoStack.removeLast());
-    });
-
-    save();
-  }
-
-  void onPointerDown(PointerDownEvent event) {
-    activePointers++;
-
-    if (activePointers >= 2) {
-      twoFingerGesture = true;
-      twoFingerStart = event.position;
-
-      currentStroke = null;
-
-      setState(() {});
-      return;
-    }
-
-    if (selectedTool == ToolType.eraser) {
-      eraseAt(event.localPosition);
-      return;
-    }
-
-    strokeStart = DateTime.now();
-
-    currentStroke = DrawingStroke(
-      points: [
-        DrawingPoint(
-          event.localPosition.dx,
-          event.localPosition.dy,
-        ),
-      ],
-      color: selectedColor.value,
-      width: strokeWidth,
-      tool: selectedTool,
-    );
-
-    setState(() {});
-  }
-
-  void onPointerMove(PointerMoveEvent event) {
-    if (activePointers >= 2 || twoFingerGesture) {
-      return;
-    }
-
-    if (currentStroke == null) return;
-
-    currentStroke!.points.add(
-      DrawingPoint(
-        event.localPosition.dx,
-        event.localPosition.dy,
+          ),
+        ],
       ),
     );
-
-    setState(() {});
   }
 
-  void onPointerUp(PointerUpEvent event) {
-    activePointers--;
-
-    if (twoFingerGesture) {
-      if (activePointers <= 0) {
-        final start = twoFingerStart;
-
-        if (start != null) {
-          final dy = event.position.dy - start.dy;
-
-          if (dy < -80) {
-            nextPage();
-          } else if (dy > 80) {
-            previousPage();
-          }
-        }
-
-        twoFingerStart = null;
-        twoFingerGesture = false;
-        activePointers = 0;
-      }
-
-      return;
+  List<Offset> _makeStraightIfNeeded(List<Offset> points) {
+    if (points.length < 10) {
+      return points;
     }
 
-    finishStroke();
-  }
-
-  void onPointerCancel(PointerCancelEvent event) {
-    activePointers = math.max(0, activePointers - 1);
-
-    if (activePointers == 0) {
-      currentStroke = null;
-      twoFingerGesture = false;
-      twoFingerStart = null;
-      setState(() {});
-    }
-  }
-
-  void finishStroke() {
-    if (currentStroke == null) return;
-
-    final stroke = currentStroke!;
-
-    currentStroke = null;
-
-    if (stroke.points.length >= 2) {
-      saveUndoState();
-
-      final duration = DateTime.now().difference(
-        strokeStart ?? DateTime.now(),
-      );
-
-      final corrected = recognizeShape(
-        stroke,
-        duration,
-      );
-
-      setState(() {
-        page.strokes.add(corrected);
-      });
-
-      save();
-    }
-
-    strokeStart = null;
-
-    setState(() {});
-  }
-
-  DrawingStroke recognizeShape(
-    DrawingStroke stroke,
-    Duration duration,
-  ) {
-    if (stroke.tool != ToolType.pen) {
-      return stroke;
-    }
-
-    if (stroke.points.length < 8) {
-      return stroke;
-    }
-
-    // Hold for around half a second to trigger shape correction.
-    if (duration.inMilliseconds < 450) {
-      return stroke;
-    }
-
-    final first = stroke.points.first.offset;
-    final last = stroke.points.last.offset;
+    final first = points.first;
+    final last = points.last;
 
     final dx = last.dx - first.dx;
     final dy = last.dy - first.dy;
 
-    final distance = math.sqrt(
-      dx * dx + dy * dy,
-    );
+    final distance = math.sqrt(dx * dx + dy * dy);
 
-    if (distance < 40) {
-      return stroke;
+    if (distance < 80) {
+      return points;
     }
 
-    // ----------------------------------------------------------
-    // STRAIGHT LINE
-    // ----------------------------------------------------------
+    double totalError = 0;
 
-    double maxLineError = 0;
-
-    for (final point in stroke.points) {
-      final error = distanceToLine(
-        point.offset,
+    for (final p in points) {
+      final error = _distanceFromLine(
+        p,
         first,
         last,
       );
-
-      maxLineError = math.max(
-        maxLineError,
-        error,
-      );
+      totalError += error;
     }
 
-    if (maxLineError < 25) {
-      return DrawingStroke(
-        points: [
-          DrawingPoint(
-            first.dx,
-            first.dy,
-          ),
-          DrawingPoint(
-            last.dx,
-            last.dy,
-          ),
-        ],
-        color: stroke.color,
-        width: stroke.width,
-        tool: stroke.tool,
-        shape: StrokeShape.line,
-      );
+    final averageError = totalError / points.length;
+
+    // Very straight stroke -> exact line.
+    if (averageError < 18) {
+      return [first, last];
     }
 
-    // ----------------------------------------------------------
-    // CIRCLE
-    // ----------------------------------------------------------
-
-    final center = Offset(
-      (first.dx + last.dx) / 2,
-      (first.dy + last.dy) / 2,
-    );
-
-    final radii = <double>[];
-
-    for (final point in stroke.points) {
-      radii.add(
-        (point.offset - center).distance,
-      );
-    }
-
-    final averageRadius =
-        radii.reduce((a, b) => a + b) / radii.length;
-
-    if (averageRadius < 35) {
-      return stroke;
-    }
-
-    double radiusError = 0;
-
-    for (final radius in radii) {
-      radiusError = math.max(
-        radiusError,
-        (radius - averageRadius).abs(),
-      );
-    }
-
-    final closedDistance = (last - first).distance;
-
-    if (radiusError < 30 && closedDistance < 100) {
-      return DrawingStroke(
-        points: [
-          DrawingPoint(
-            center.dx,
-            center.dy,
-          ),
-          DrawingPoint(
-            averageRadius,
-            0,
-          ),
-        ],
-        color: stroke.color,
-        width: stroke.width,
-        tool: stroke.tool,
-        shape: StrokeShape.circle,
-      );
-    }
-
-    return stroke;
+    return points;
   }
 
-  double distanceToLine(
+  double _distanceFromLine(
     Offset p,
     Offset a,
     Offset b,
@@ -938,326 +516,118 @@ class _NotebookScreenState extends State<NotebookScreen> {
       return (p - a).distance;
     }
 
-    final t = ((p.dx - a.dx) * dx +
-            (p.dy - a.dy) * dy) /
-        (dx * dx + dy * dy);
-
-    final clamped = t.clamp(0.0, 1.0);
-
-    final projection = Offset(
-      a.dx + clamped * dx,
-      a.dy + clamped * dy,
-    );
-
-    return (p - projection).distance;
+    return ((dy * p.dx) -
+            (dx * p.dy) +
+            (b.dx * a.dy) -
+            (b.dy * a.dx))
+        .abs() /
+        math.sqrt(dy * dy + dx * dx);
   }
 
-  void eraseAt(Offset position) {
-    if (page.strokes.isEmpty) return;
-
-    saveUndoState();
-
-    page.strokes.removeWhere(
-      (stroke) {
-        for (final point in stroke.points) {
-          if ((point.offset - position).distance <
-              stroke.width * 3 + 25) {
-            return true;
-          }
-        }
-
-        return false;
-      },
-    );
-
-    setState(() {});
-
-    save();
-  }
-
-  void nextPage() {
-    if (currentPage < pages.length - 1) {
-      setState(() {
-        currentPage++;
-      });
-    } else {
-      setState(() {
-        pages.add(NotebookPage());
-        currentPage++;
-      });
-
-      save();
+  List<Offset>? _makeCircleIfNeeded(List<Offset> points) {
+    if (points.length < 20) {
+      return null;
     }
-  }
 
-  void previousPage() {
-    if (currentPage > 0) {
-      setState(() {
-        currentPage--;
-      });
+    final first = points.first;
+    final last = points.last;
+
+    final closingDistance = (first - last).distance;
+
+    if (closingDistance > 60) {
+      return null;
     }
-  }
 
-  void addPage() {
-    setState(() {
-      pages.add(NotebookPage());
-      currentPage = pages.length - 1;
-    });
+    double minX = double.infinity;
+    double maxX = -double.infinity;
+    double minY = double.infinity;
+    double maxY = -double.infinity;
 
-    save();
-  }
+    for (final p in points) {
+      minX = math.min(minX, p.dx);
+      maxX = math.max(maxX, p.dx);
+      minY = math.min(minY, p.dy);
+      maxY = math.max(maxY, p.dy);
+    }
 
-  void clearPage() {
-    if (page.strokes.isEmpty) return;
+    final width = maxX - minX;
+    final height = maxY - minY;
 
-    saveUndoState();
+    if (width < 50 || height < 50) {
+      return null;
+    }
 
-    setState(() {
-      page.strokes.clear();
-    });
+    final ratio = width / height;
 
-    save();
-  }
+    if (ratio < 0.72 || ratio > 1.38) {
+      return null;
+    }
 
-  void showColorPicker() {
-    final colors = [
-      Colors.black,
-      Colors.red,
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.pink,
-      Colors.brown,
-    ];
-
-    showModalBottomSheet(
-      context: context,
-      builder: (_) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(25),
-            child: Wrap(
-              spacing: 20,
-              runSpacing: 20,
-              children: colors.map((color) {
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedColor = color;
-                    });
-
-                    Navigator.pop(context);
-                  },
-                  child: CircleAvatar(
-                    radius: 27,
-                    backgroundColor: color,
-                    child: selectedColor.value == color.value
-                        ? const Icon(
-                            Icons.check,
-                            color: Colors.white,
-                          )
-                        : null,
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        );
-      },
+    final center = Offset(
+      (minX + maxX) / 2,
+      (minY + maxY) / 2,
     );
+
+    final radius = (width + height) / 4;
+
+    final result = <Offset>[];
+
+    for (int i = 0; i <= 80; i++) {
+      final angle = (math.pi * 2 * i) / 80;
+
+      result.add(
+        Offset(
+          center.dx + radius * math.cos(angle),
+          center.dy + radius * math.sin(angle),
+        ),
+      );
+    }
+
+    return result;
   }
+}
 
-  void showSizePicker() {
-    showModalBottomSheet(
-      context: context,
-      builder: (_) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: const EdgeInsets.all(25),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Stroke Size',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+// ------------------------------------------------------------
+// TOOLBAR
+// ------------------------------------------------------------
 
-                  const SizedBox(height: 20),
+class _ToolBar extends StatelessWidget {
+  final ToolType selectedTool;
+  final ValueChanged<ToolType> onToolChanged;
 
-                  Slider(
-                    min: 1,
-                    max: 25,
-                    value: strokeWidth,
-                    onChanged: (value) {
-                      setModalState(() {});
-                      setState(() {
-                        strokeWidth = value;
-                      });
-                    },
-                  ),
-
-                  Text(
-                    '${strokeWidth.toStringAsFixed(1)} px',
-                  ),
-
-                  const SizedBox(height: 20),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
+  const _ToolBar({
+    required this.selectedTool,
+    required this.onToolChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            size: 30,
-          ),
-          onPressed: () async {
-            await save();
-
-            if (mounted) {
-              Navigator.pop(context);
-            }
-          },
+    return Material(
+      elevation: 6,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
         ),
-        title: Text(
-          widget.bookName,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.undo),
-            onPressed: undo,
-          ),
-          IconButton(
-            icon: const Icon(Icons.redo),
-            onPressed: redo,
-          ),
-          IconButton(
-            icon: const Icon(Icons.add_box_outlined),
-            onPressed: addPage,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          _toolBar(),
-
-          Expanded(
-            child: Container(
-              color: Colors.white,
-              child: Listener(
-                behavior: HitTestBehavior.opaque,
-                onPointerDown: onPointerDown,
-                onPointerMove: onPointerMove,
-                onPointerUp: onPointerUp,
-                onPointerCancel: onPointerCancel,
-                child: CustomPaint(
-                  painter: NotebookPainter(
-                    strokes: page.strokes,
-                    currentStroke: currentStroke,
-                  ),
-                  child: const SizedBox.expand(),
-                ),
-              ),
-            ),
-          ),
-
-          _bottomBar(),
-        ],
-      ),
-    );
-  }
-
-  Widget _toolBar() {
-    return Container(
-      height: 65,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x22000000),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
+        child: Column(
           children: [
-            const SizedBox(width: 8),
-
             _toolButton(
               Icons.edit,
               ToolType.pen,
               'Pen',
             ),
-
             _toolButton(
               Icons.highlight,
               ToolType.highlighter,
               'Highlighter',
             ),
-
             _toolButton(
               Icons.cleaning_services,
               ToolType.eraser,
               'Eraser',
             ),
-
-            const VerticalDivider(
-              width: 20,
-              indent: 12,
-              endIndent: 12,
-            ),
-
-            IconButton(
-              tooltip: 'Color',
-              onPressed: selectedTool == ToolType.eraser
-                  ? null
-                  : showColorPicker,
-              icon: CircleAvatar(
-                radius: 13,
-                backgroundColor: selectedColor,
-              ),
-            ),
-
-            IconButton(
-              tooltip: 'Size',
-              onPressed: showSizePicker,
-              icon: const Icon(
-                Icons.line_weight,
-              ),
-            ),
-
-            IconButton(
-              tooltip: 'Clear page',
-              onPressed: clearPage,
-              icon: const Icon(
-                Icons.delete_outline,
-              ),
-            ),
-
-            const SizedBox(width: 8),
           ],
         ),
       ),
@@ -1271,43 +641,25 @@ class _NotebookScreenState extends State<NotebookScreen> {
   ) {
     final selected = selectedTool == tool;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 4,
-      ),
-      child: IconButton(
-        tooltip: tooltip,
-        onPressed: () {
-          setState(() {
-            selectedTool = tool;
-          });
-        },
-        style: IconButton.styleFrom(
-          backgroundColor: selected
-              ? const Color(0xFFE0E3FF)
-              : Colors.transparent,
-        ),
-        icon: Icon(
-          icon,
-          size: 28,
-          color: selected
-              ? const Color(0xFF555D9C)
-              : Colors.black87,
-        ),
-      ),
-    );
-  }
-
-  Widget _bottomBar() {
-    return Container(
-      height: 48,
-      color: Colors.white,
-      child: Center(
-        child: Text(
-          'Page ${currentPage + 1} / ${pages.length}   •   Two fingers ↑ ↓ to change page',
-          style: const TextStyle(
-            color: Colors.black54,
-            fontSize: 13,
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => onToolChanged(tool),
+        child: Container(
+          width: 55,
+          height: 55,
+          margin: const EdgeInsets.only(bottom: 5),
+          decoration: BoxDecoration(
+            color: selected
+                ? const Color(0xFFDDE1FF)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(
+            icon,
+            size: 28,
+            color: const Color(0xFF5963A5),
           ),
         ),
       ),
@@ -1315,250 +667,181 @@ class _NotebookScreenState extends State<NotebookScreen> {
   }
 }
 
-// ============================================================
+// ------------------------------------------------------------
 // NOTEBOOK PAINTER
-// ============================================================
+// ------------------------------------------------------------
 
 class NotebookPainter extends CustomPainter {
-  final List<DrawingStroke> strokes;
-  final DrawingStroke? currentStroke;
+  final List<DrawStroke> strokes;
+  final List<Offset> currentPoints;
+
+  final Color currentColor;
+  final double currentWidth;
+  final ToolType currentTool;
 
   NotebookPainter({
     required this.strokes,
-    required this.currentStroke,
+    required this.currentPoints,
+    required this.currentColor,
+    required this.currentWidth,
+    required this.currentTool,
   });
 
   @override
-  void paint(
-    Canvas canvas,
-    Size size,
-  ) {
-    final background = Paint()
-      ..color = Colors.white;
+  void paint(Canvas canvas, Size size) {
+    // Paper
+    final paper = Paint()
+      ..color = const Color(0xFFFFFEFF);
 
     canvas.drawRect(
       Offset.zero & size,
-      background,
+      paper,
     );
 
-    drawPaperLines(
-      canvas,
-      size,
-    );
-
-    for (final stroke in strokes) {
-      drawStroke(
-        canvas,
-        stroke,
-      );
-    }
-
-    if (currentStroke != null) {
-      drawStroke(
-        canvas,
-        currentStroke!,
-      );
-    }
-  }
-
-  void drawPaperLines(
-    Canvas canvas,
-    Size size,
-  ) {
-    final paint = Paint()
-      ..color = const Color(0xFFE3E5EE)
+    // Notebook lines
+    final linePaint = Paint()
+      ..color = const Color(0xFFE2E2E8)
       ..strokeWidth = 1;
 
     const spacing = 42.0;
 
-    for (
-      double y = spacing;
-      y < size.height;
-      y += spacing
-    ) {
+    for (double y = 30; y < size.height; y += spacing) {
       canvas.drawLine(
         Offset(0, y),
         Offset(size.width, y),
-        paint,
+        linePaint,
       );
+    }
+
+    // Saved strokes
+    for (final stroke in strokes) {
+      _drawStroke(canvas, stroke);
+    }
+
+    // Current stroke
+    if (currentPoints.length > 1) {
+      final preview = DrawStroke(
+        points: currentPoints,
+        color: currentColor,
+        width: currentWidth,
+        tool: currentTool,
+      );
+
+      _drawStroke(canvas, preview);
     }
   }
 
-  void drawStroke(
+  void _drawStroke(
     Canvas canvas,
-    DrawingStroke stroke,
+    DrawStroke stroke,
   ) {
-    if (stroke.points.isEmpty) return;
-
-    final opacity =
-        stroke.tool == ToolType.highlighter
-            ? 0.30
-            : 1.0;
+    if (stroke.points.length < 2) {
+      return;
+    }
 
     final paint = Paint()
-      ..color = Color(stroke.color).withOpacity(opacity)
-      ..strokeWidth = stroke.tool == ToolType.highlighter
-          ? stroke.width * 3
-          : stroke.width
+      ..color = stroke.color
+      ..strokeWidth = stroke.width
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke;
 
-    if (stroke.shape == StrokeShape.line &&
-        stroke.points.length >= 2) {
-      canvas.drawLine(
-        stroke.points.first.offset,
-        stroke.points.last.offset,
-        paint,
-      );
-
-      return;
-    }
-
-    if (stroke.shape == StrokeShape.circle &&
-        stroke.points.length >= 2) {
-      final center = stroke.points.first.offset;
-      final radius = stroke.points[1].x;
-
-      canvas.drawCircle(
-        center,
-        radius,
-        paint,
-      );
-
-      return;
-    }
-
-    if (stroke.points.length == 1) {
-      canvas.drawCircle(
-        stroke.points.first.offset,
-        paint.strokeWidth / 2,
-        Paint()
-          ..color = Color(stroke.color).withOpacity(opacity)
-          ..style = PaintingStyle.fill,
-      );
-
-      return;
+    if (stroke.tool == ToolType.highlighter) {
+      paint.color = stroke.color.withOpacity(0.28);
+      paint.strokeWidth = 22;
     }
 
     final path = Path();
 
     path.moveTo(
-      stroke.points.first.x,
-      stroke.points.first.y,
+      stroke.points.first.dx,
+      stroke.points.first.dy,
     );
 
     for (int i = 1; i < stroke.points.length; i++) {
       path.lineTo(
-        stroke.points[i].x,
-        stroke.points[i].y,
+        stroke.points[i].dx,
+        stroke.points[i].dy,
       );
     }
 
-    canvas.drawPath(
-      path,
-      paint,
-    );
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(
-    covariant NotebookPainter oldDelegate,
-  ) {
+  bool shouldRepaint(covariant NotebookPainter oldDelegate) {
     return true;
   }
 }
 
-// ============================================================
+// ------------------------------------------------------------
 // CALCULATOR
-// ============================================================
+// ------------------------------------------------------------
 
-class CalculatorScreen extends StatefulWidget {
-  const CalculatorScreen({super.key});
+class CalculatorPage extends StatefulWidget {
+  const CalculatorPage({super.key});
 
   @override
-  State<CalculatorScreen> createState() =>
-      _CalculatorScreenState();
+  State<CalculatorPage> createState() => _CalculatorPageState();
 }
 
-class _CalculatorScreenState
-    extends State<CalculatorScreen> {
-  String display = '0';
+class _CalculatorPageState extends State<CalculatorPage> {
+  String value = '0';
 
-  void press(String value) {
+  void press(String text) {
     setState(() {
-      if (value == 'C') {
-        display = '0';
-        return;
-      }
-
-      if (value == '=') {
+      if (text == 'C') {
+        value = '0';
+      } else if (text == '=') {
         try {
-          display = calculate(display);
+          value = _calculate(value);
         } catch (_) {
-          display = 'Error';
+          value = 'Error';
         }
-
-        return;
-      }
-
-      if (display == '0' && value != '.') {
-        display = value;
       } else {
-        display += value;
+        if (value == '0' || value == 'Error') {
+          value = text;
+        } else {
+          value += text;
+        }
       }
     });
   }
 
-  String calculate(String expression) {
-    expression = expression
-        .replaceAll('×', '*')
-        .replaceAll('÷', '/');
+  String _calculate(String input) {
+    input = input.replaceAll('×', '*');
+    input = input.replaceAll('÷', '/');
 
-    final tokens = RegExp(
-      r'(\d+(?:\.\d+)?)|([+\-*/])',
-    ).allMatches(expression);
+    // Basic calculator evaluation.
+    final match = RegExp(
+      r'^(-?\d+(?:\.\d+)?)([+\-*/])(-?\d+(?:\.\d+)?)$',
+    ).firstMatch(input);
 
-    final values = <double>[];
-    final operators = <String>[];
-
-    for (final match in tokens) {
-      final text = match.group(0)!;
-
-      if (double.tryParse(text) != null) {
-        values.add(double.parse(text));
-      } else {
-        operators.add(text);
-      }
+    if (match == null) {
+      return input;
     }
 
-    if (values.isEmpty) {
-      return '0';
-    }
+    final a = double.parse(match.group(1)!);
+    final op = match.group(2)!;
+    final b = double.parse(match.group(3)!);
 
-    double result = values.first;
+    double result;
 
-    for (int i = 0; i < operators.length; i++) {
-      final op = operators[i];
-
-      if (i + 1 >= values.length) break;
-
-      final next = values[i + 1];
-
-      switch (op) {
-        case '+':
-          result += next;
-          break;
-        case '-':
-          result -= next;
-          break;
-        case '*':
-          result *= next;
-          break;
-        case '/':
-          result /= next;
-          break;
-      }
+    switch (op) {
+      case '+':
+        result = a + b;
+        break;
+      case '-':
+        result = a - b;
+        break;
+      case '*':
+        result = a * b;
+        break;
+      case '/':
+        result = a / b;
+        break;
+      default:
+        result = 0;
     }
 
     if (result == result.roundToDouble()) {
@@ -1571,11 +854,22 @@ class _CalculatorScreenState
   @override
   Widget build(BuildContext context) {
     final buttons = [
-      ['C', '÷', '×', '−'],
-      ['7', '8', '9', '+'],
-      ['4', '5', '6', '-'],
-      ['1', '2', '3', '='],
-      ['0', '.', '', ''],
+      'C',
+      '÷',
+      '×',
+      '-',
+      '7',
+      '8',
+      '9',
+      '+',
+      '4',
+      '5',
+      '6',
+      '=',
+      '1',
+      '2',
+      '3',
+      '0',
     ];
 
     return Scaffold(
@@ -1589,40 +883,36 @@ class _CalculatorScreenState
               alignment: Alignment.bottomRight,
               padding: const EdgeInsets.all(30),
               child: Text(
-                display,
+                value,
                 style: const TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 46,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
-
-          for (final row in buttons)
-            Expanded(
-              child: Row(
-                children: [
-                  for (final button in row)
-                    Expanded(
-                      child: button.isEmpty
-                          ? const SizedBox()
-                          : Padding(
-                              padding: const EdgeInsets.all(5),
-                              child: ElevatedButton(
-                                onPressed: () =>
-                                    press(button),
-                                child: Text(
-                                  button,
-                                  style: const TextStyle(
-                                    fontSize: 25,
-                                  ),
-                                ),
-                              ),
-                            ),
-                    ),
-                ],
-              ),
+          GridView.builder(
+            shrinkWrap: true,
+            padding: const EdgeInsets.all(16),
+            gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
             ),
+            itemCount: buttons.length,
+            itemBuilder: (_, index) {
+              final text = buttons[index];
+
+              return ElevatedButton(
+                onPressed: () => press(text),
+                child: Text(
+                  text,
+                  style: const TextStyle(fontSize: 24),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
