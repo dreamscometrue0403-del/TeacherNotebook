@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Flutter
@@ -16,9 +16,11 @@ jobs:
         with:
           channel: stable
 
-      - name: Create Flutter project structure
+      - name: Create Android project
         run: |
-          flutter create --project-name teacher_notebook .
+          flutter create --platforms=android --project-name=teacher_notebook temp_project
+          cp -r temp_project/android .
+          rm -rf temp_project
 
       - name: Get dependencies
         run: flutter pub get
